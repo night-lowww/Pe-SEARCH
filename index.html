@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PR SEARCH</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,"Noto Sans JP",sans-serif;
+  background:#0b0b10;
+  color:#fff;
+  text-align:center;
+  padding:95px 20px 60px
+}
+
+button,input{
+  font:inherit
+}
+
+.home{
+  position:fixed;
+  top:20px;
+  left:20px;
+  background:#18181f;
+  color:#fff;
+  border:1px solid #444;
+  border-radius:10px;
+  padding:9px 15px;
+  z-index:10
+}
+
+h1{
+  font-size:58px;
+  letter-spacing:4px;
+  margin:0
+}
+
+.sub{
+  color:#999;
+  margin:12px 0 35px
+}
+
+.search{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap
+}
+
+.search input{
+  width:min(600px,90vw);
+  padding:17px 20px;
+  border-radius:12px;
+  border:1px solid #333;
+  background:#18181f;
+  color:#fff;
+  outline:0
+}
+
+.search input:focus{
+  border-color:#888
+}
+
+.search button,
+.calc button{
+  padding:13px 22px;
+  border:0;
+  border-radius:12px;
+  background:#fff;
+  color:#111;
+  cursor:pointer
+}
+
+.filters{
+  width:min(780px,95vw);
+  margin:18px auto 0;
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px
+}
+
+.filters button{
+  padding:8px 14px;
+  border:1px solid #444;
+  border-radius:20px;
+  background:#18181f;
+  color:#aaa;
+  cursor:pointer;
+  font-size:13px
+}
+
+.filters button.active,
+.filters button:hover{
+  background:#fff;
+  color:#111
+}
+
+#results,
+#recent,
+.calc{
+  width:min(760px,95vw);
+  margin:42px auto;
+  text-align:left
+}
+
+.card,
+.recent-item,
+.calc{
+  background:#17171e;
+  border:1px solid #2b2b35;
+  border-radius:14px
+}
+
+.card{
+  padding:20px;
+  margin-bottom:14px;
+  cursor:pointer
+}
+
+.card:hover,
+.recent-item:hover{
+  background:#20202a
+}
+
+.card h2{
+  margin:0 0 8px
+}
+
+.type{
+  color:#888;
+  font-size:13px
+}
+
+.desc{
+  color:#aaa;
+  line-height:1.65
+}
+
+.tag{
+  display:inline-block;
+  background:#292934;
+  color:#ccc;
+  padding:5px 9px;
+  margin:3px;
+  border-radius:20px;
+  font-size:12px
+}
+
+.shortcut{
+  color:#8be9fd;
+  font-family:monospace;
+  margin-top:10px
+}
+
+.fav{
+  float:right;
+  padding:7px 10px;
+  background:#222;
+  color:#fff;
+  border:1px solid #444;
+  border-radius:8px;
+  font-size:12px
+}
+
+.recent-item{
+  padding:13px 16px;
+  margin-bottom:8px;
+  cursor:pointer
+}
+
+.recent-item strong{
+  display:block
+}
+
+.recent-item span{
+  color:#888;
+  font-size:12px
+}
+
+.no{
+  text-align:center;
+  color:#777;
+  padding:30px
+}
+
+.fav-panel{
+  display:none;
+  position:fixed;
+  top:85px;
+  right:20px;
+  width:min(370px,90vw);
+  max-height:75vh;
+  overflow:auto;
+  background:#17171e;
+  border:1px solid #444;
+  border-radius:15px;
+  padding:20px;
+  z-index:20;
+  text-align:left
+}
+
+.fav-panel.show{
+  display:block
+}
+
+.fav-item{
+  background:#22222b;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:8px
+}
+
+.fav-item p{
+  color:#aaa
+}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  backdrop-filter:blur(6px);
+  z-index:30;
+  align-items:center;
+  justify-content:center;
+  padding:20px
+}
+
+.modal.show{
+  display:flex
+}
+
+.modal-box{
+  width:min(680px,100%);
+  max-height:86vh;
+  overflow:auto;
+  background:#151515;
+  border:1px solid #444;
+  border-radius:16px;
+  padding:30px;
+  text-align:left;
+  position:relative
+}
+
+.close{
+  position:absolute;
+  top:10px;
+  right:12px;
+  background:none;
+  color:#aaa;
+  font-size:28px
+}
+
+.modal h2{
+  margin:0 40px 10px 0
+}
+
+.modal h3{
+  color:#aaa;
+  font-size:14px;
+  margin-top:25px
+}
+
+.modal p{
+  color:#ccc;
+  line-height:1.8;
+  white-space:pre-line
+}
+
+.info{
+  background:#0b0b0b;
+  border:1px solid #333;
+  border-radius:10px;
+  padding:15px;
+  color:#8be9fd;
+  white-space:pre-wrap;
+  font-family:monospace
+}
+
+.calc{
+  padding:24px
+}
+
+.calc h2{
+  margin:0 0 6px
+}
+
+.calc p{
+  color:#888;
+  font-size:13px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px
+}
+
+.grid label{
+  display:block;
+  color:#aaa;
+  font-size:12px;
+  margin-bottom:5px
+}
+
+.grid input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #333;
+  background:#0f0f14;
+  color:#fff
+}
+
+.calc-actions{
+  margin-top:16px;
+  display:flex;
+  gap:8px
+}
+
+.calc-result{
+  margin-top:18px;
+  padding:15px;
+  background:#0f0f14;
+  border:1px solid #333;
+  border-radius:10px;
+  line-height:1.9
+}
+
+@media(max-width:700px){
+  body{
+    padding:70px 12px 40px
+  }
+
+  h1{
+    font-size:42px
+  }
+
+  .grid{
+    grid-template-columns:1fr
+  }
+}
+</style>
+</head>
+
+<body>
+
+<button class="home" id="home">⌂ ホーム</button>
+
+<h1>PR SEARCH</h1>
+<p class="sub">Premiere Pro 検索エンジン</p>
+
+<div class="search">
+  <input
+    id="searchBox"
+    placeholder="エフェクト・編集・音・カラー・ショートカットを検索"
+  >
+  <button id="searchBtn">検索</button>
+</div>
+
+<div class="filters" id="kindFilters">
+  <button class="active" data-kind="all">すべて</button>
+  <button data-kind="effect">エフェクト</button>
+  <button data-kind="transition">トランジション</button>
+  <button data-kind="audio">オーディオ</button>
+  <button data-kind="tool">ツール</button>
+  <button data-kind="shortcut">ショートカット</button>
+</div>
+
+<div class="filters" id="genreFilters">
+  <button class="active" data-genre="all">すべて</button>
+  <button data-genre="色">カラー</button>
+  <button data-genre="ぼかし">ぼかし</button>
+  <button data-genre="歪み">歪み</button>
+  <button data-genre="文字">文字</button>
+  <button data-genre="速度">速度</button>
+  <button data-genre="音">音</button>
+  <button data-genre="切り替え">切り替え</button>
+  <button data-genre="クロマキー">クロマキー</button>
+</div>
+
+<div id="results"></div>
+
+<section id="recent">
+  <h2>最近使った</h2>
+  <div id="recentList">
+    <p>まだありません</p>
+  </div>
+</section>
+
+<button id="favBtn">⭐ お気に入り</button>
+
+<div id="favPanel" class="fav-panel">
+  <h2>⭐ お気に入り</h2>
+  <div id="favList">
+    <p>お気に入りはありません</p>
+  </div>
+</div>
+
+<div class="calc">
+
+  <h2>PR TIME CALCULATOR</h2>
+
+  <p>
+    フレーム・秒・タイムコードを相互変換
+  </p>
+
+  <div class="grid">
+
+    <div>
+      <label>FPS</label>
+      <input
+        id="fps"
+        type="number"
+        value="30"
+        min="1"
+      >
+    </div>
+
+    <div>
+      <label>フレーム</label>
+      <input
+        id="frames"
+        type="number"
+        min="0"
+        placeholder="120"
+      >
+    </div>
+
+    <div>
+      <label>秒</label>
+      <input
+        id="seconds"
+        type="number"
+        min="0"
+        step="0.001"
+        placeholder="4"
+      >
+    </div>
+
+    <div>
+      <label>タイムコード</label>
+      <input
+        id="tc"
+        placeholder="00:00:04:00"
+      >
+    </div>
+
+  </div>
+
+  <div class="calc-actions">
+    <button id="calcBtn">変換</button>
+    <button id="clearBtn">クリア</button>
+  </div>
+
+  <div class="calc-result">
+    フレーム：<b id="outF">---</b><br>
+    秒：<b id="outS">---</b><br>
+    タイムコード：<b id="outTC">---</b>
+  </div>
+
+</div>
+
+<div id="modal" class="modal">
+
+  <div class="modal-box">
+
+    <button id="close" class="close">×</button>
+
+    <h2 id="mTitle"></h2>
+
+    <div id="mType" class="type"></div>
+
+    <p id="mDesc"></p>
+
+    <h3>用途</h3>
+    <p id="mPurpose"></p>
+
+    <h3>操作手順</h3>
+    <p id="mSteps"></p>
+
+    <div id="mInfoArea">
+
+      <h3>ショートカット / 補足</h3>
+
+      <div id="mInfo" class="info"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="data.js"></script>
+
+<script>
+
+const $ = id => document.getElementById(id);
+
+const box = $("searchBox");
+const results = $("results");
+
+let kind = "all";
+let genre = "all";
+
+let fav = JSON.parse(
+  localStorage.getItem("prFav") || "[]"
+);
+
+let recent = JSON.parse(
+  localStorage.getItem("prRecent") || "[]"
+);
+
+const syn = {
+
+  "ぼかす":["ぼかし","ブラー","Blur"],
+  "ぼかし":["ぼかし","ブラー","Blur"],
+
+  "色":["カラー","Lumetri","色補正"],
+  "カラー":["色","Lumetri","色補正"],
+
+  "歪み":["歪み","ワープ","Distort","揺れ"],
+  "揺らす":["揺れ","手ブレ","Warp Stabilizer"],
+
+  "文字":["文字","テキスト","字幕","タイトル"],
+
+  "速度":["速度","スピード","タイムリマップ","スロー"],
+
+  "音":["音","オーディオ","ノイズ除去","EQ"],
+  "雑音":["ノイズ","DeNoise","オーディオ"],
+
+  "切り替え":["切り替え","トランジション","ディゾルブ"],
+
+  "クロマキー":["クロマキー","Ultra Key","緑","背景削除"],
+
+  "書き出し":["書き出し","Export","H.264"]
+
+};
+
+function esc(v){
+
+  return String(v ?? "").replace(
+    /[&<>"']/g,
+    c => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[c])
+  );
+
+}
+
+function save(){
+
+  localStorage.setItem(
+    "prFav",
+    JSON.stringify(fav)
+  );
+
+  localStorage.setItem(
+    "prRecent",
+    JSON.stringify(recent)
+  );
+
+}
+
+function score(x,words){
+
+  let s = 0;
+
+  for(const w of words){
+
+    const q = w.toLowerCase();
+
+    if(
+      (x.name || "")
+      .toLowerCase()
+      .includes(q)
+    ) s += 5;
+
+    if(
+      (x.description || "")
+      .toLowerCase()
+      .includes(q)
+    ) s += 3;
+
+    if(
+      (x.tags || [])
+      .join(" ")
+      .toLowerCase()
+      .includes(q)
+    ) s += 3;
+
+    if(
+      (x.purposes || [])
+      .join(" ")
+      .toLowerCase()
+      .includes(q)
+    ) s += 2;
+
+    if(
+      (x.steps || "")
+      .toLowerCase()
+      .includes(q)
+    ) s += 1;
+
+    if(
+      (x.shortcut || "")
+      .toLowerCase()
+      .includes(q)
+    ) s += 2;
+
+  }
+
+  return s;
+
+}
+
+function render(list){
+
+  results.innerHTML = "";
+
+  if(!list.length){
+
+    results.innerHTML =
+      '<div class="no">該当する項目がありません。</div>';
+
+    return;
+
+  }
+
+  list.forEach(x => {
+
+    const tags =
+      (x.tags || [])
+      .map(
+        t => `<span class="tag">#${esc(t)}</span>`
+      )
+      .join("");
+
+    results.innerHTML += `
+
+      <div
+        class="card"
+        data-name="${esc(x.name)}"
+      >
+
+        <button
+          class="fav"
+          data-fav="${esc(x.name)}"
+        >
+          ${
+            fav.includes(x.name)
+            ? "⭐ お気に入り解除"
+            : "☆ お気に入り"
+          }
+        </button>
+
+        <h2>${esc(x.name)}</h2>
+
+        <div class="type">
+          ${esc(x.type)}
+        </div>
+
+        <p class="desc">
+          ${esc(x.description)}
+        </p>
+
+        <div>
+          ${tags}
+        </div>
+
+        ${
+          x.shortcut
+          ? `<div class="shortcut">
+              ⌨ ${esc(x.shortcut)}
+            </div>`
+          : ""
+        }
+
+      </div>
+
+    `;
+
+  });
+
+}
+
+function filtered(){
+
+  return effects.filter(x =>
+    (kind === "all" || x.kind === kind) &&
+    (
+      genre === "all" ||
+      (x.tags || []).includes(genre)
+    )
+  );
+
+}
+
+function search(){
+
+  const q =
+    box.value
+    .trim()
+    .toLowerCase();
+
+  if(!q){
+
+    render(filtered());
+
+    return;
+
+  }
+
+  const words = [
+    q,
+    ...(syn[q] || [])
+  ];
+
+  render(
+    filtered()
+      .map(x => ({
+        x,
+        s:score(x,words)
+      }))
+      .filter(a => a.s > 0)
+      .sort((a,b) => b.s - a.s)
+      .map(a => a.x)
+  );
+
+}
+
+function recentView(){
+
+  if(!recent.length){
+
+    $("recentList").innerHTML =
+      "<p>まだありません</p>";
+
+    return;
+
+  }
+
+  $("recentList").innerHTML =
+    recent.map(n => {
+
+      const x =
+        effects.find(e => e.name === n);
+
+      return x
+        ? `
+          <div
+            class="recent-item"
+            data-recent="${esc(n)}"
+          >
+            <strong>${esc(n)}</strong>
+            <span>${esc(x.type)}</span>
+          </div>
+        `
+        : "";
+
+    }).join("");
+
+}
+
+function favView(){
+
+  $("favList").innerHTML =
+    fav.length
+    ? fav.map(n => {
+
+        const x =
+          effects.find(e => e.name === n);
+
+        return x
+          ? `
+            <div class="fav-item">
+
+              <strong>${esc(n)}</strong>
+
+              <p>
+                ${esc(x.description)}
+              </p>
+
+              <button
+                data-remove="${esc(n)}"
+              >
+                解除
+              </button>
+
+            </div>
+          `
+          : "";
+
+      }).join("")
+
+    : "<p>お気に入りはありません</p>";
+
+}
+
+function toggle(n){
+
+  fav =
+    fav.includes(n)
+    ? fav.filter(x => x !== n)
+    : [...fav,n];
+
+  save();
+  favView();
+  search();
+
+}
+
+function detail(n){
+
+  const x =
+    effects.find(e => e.name === n);
+
+  if(!x) return;
+
+  recent = [
+    n,
+    ...recent.filter(a => a !== n)
+  ].slice(0,10);
+
+  save();
+  recentView();
+
+  $("mTitle").textContent = x.name;
+  $("mType").textContent = x.type;
+  $("mDesc").textContent = x.description;
+
+  $("mPurpose").textContent =
+    (x.purposes || []).join(" ・ ");
+
+  $("mSteps").textContent =
+    x.steps || "";
+
+  $("mInfoArea").style.display =
+    (x.shortcut || x.info)
+    ? "block"
+    : "none";
+
+  $("mInfo").textContent =
+    x.shortcut || x.info || "";
+
+  $("modal").classList.add("show");
+
+}
+
+$("searchBtn").onclick = search;
+
+box.onkeydown = e => {
+
+  if(e.key === "Enter"){
+    search();
+  }
+
+};
+
+document
+  .querySelectorAll("#kindFilters button")
+  .forEach(b => {
+
+    b.onclick = () => {
+
+      document
+        .querySelectorAll("#kindFilters button")
+        .forEach(x =>
+          x.classList.remove("active")
+        );
+
+      b.classList.add("active");
+
+      kind = b.dataset.kind;
+
+      search();
+
+    };
+
+  });
+
+document
+  .querySelectorAll("#genreFilters button")
+  .forEach(b => {
+
+    b.onclick = () => {
+
+      document
+        .querySelectorAll("#genreFilters button")
+        .forEach(x =>
+          x.classList.remove("active")
+        );
+
+      b.classList.add("active");
+
+      genre = b.dataset.genre;
+
+      search();
+
+    };
+
+  });
+
+results.onclick = e => {
+
+  const f =
+    e.target.closest("[data-fav]");
+
+  if(f){
+
+    e.stopPropagation();
+
+    toggle(f.dataset.fav);
+
+    return;
+
+  }
+
+  const c =
+    e.target.closest(".card");
+
+  if(c){
+
+    detail(c.dataset.name);
+
+  }
+
+};
+
+$("recentList").onclick = e => {
+
+  const r =
+    e.target.closest("[data-recent]");
+
+  if(r){
+
+    detail(r.dataset.recent);
+
+  }
+
+};
+
+$("favBtn").onclick = () => {
+
+  $("favPanel")
+    .classList.toggle("show");
+
+  favView();
+
+};
+
+$("favList").onclick = e => {
+
+  const r =
+    e.target.closest("[data-remove]");
+
+  if(r){
+
+    toggle(r.dataset.remove);
+
+  }
+
+};
+
+$("close").onclick = () => {
+
+  $("modal")
+    .classList.remove("show");
+
+};
+
+$("modal").onclick = e => {
+
+  if(
+    e.target === e.currentTarget
+  ){
+
+    e.currentTarget
+      .classList.remove("show");
+
+  }
+
+};
+
+$("home").onclick = () => {
+
+  box.value = "";
+
+  kind = "all";
+  genre = "all";
+
+  document
+    .querySelectorAll(
+      "#kindFilters button,#genreFilters button"
+    )
+    .forEach(x =>
+      x.classList.remove("active")
+    );
+
+  document
+    .querySelector('[data-kind="all"]')
+    .classList.add("active");
+
+  document
+    .querySelector('[data-genre="all"]')
+    .classList.add("active");
+
+  render(filtered());
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+};
+
+function tc(fr,fps){
+
+  fr =
+    Math.max(
+      0,
+      Math.round(fr)
+    );
+
+  const f = fr % fps;
+
+  const t =
+    Math.floor(fr / fps);
+
+  const s = t % 60;
+
+  const m =
+    Math.floor(t / 60) % 60;
+
+  const h =
+    Math.floor(t / 3600);
+
+  return [
+    h,
+    m,
+    s,
+    f
+  ]
+  .map(
+    v => String(v).padStart(2,"0")
+  )
+  .join(":");
+
+}
+
+$("calcBtn").onclick = () => {
+
+  const fps =
+    Number($("fps").value) || 30;
+
+  let fr = null;
+
+  if($("frames").value !== ""){
+
+    fr =
+      Number($("frames").value);
+
+  }
+  else if($("seconds").value !== ""){
+
+    fr =
+      Number($("seconds").value) * fps;
+
+  }
+  else if($("tc").value){
+
+    const p =
+      $("tc")
+      .value
+      .split(":")
+      .map(Number);
+
+    if(p.length === 4){
+
+      fr =
+        (
+          (p[0] * 60 + p[1]) * 60
+          + p[2]
+        ) * fps + p[3];
+
+    }
+
+  }
+
+  if(
+    fr === null ||
+    !Number.isFinite(fr)
+  ){
+
+    alert(
+      "フレーム・秒・タイムコードのどれかを入力してね"
+    );
+
+    return;
+
+  }
+
+  $("outF").textContent =
+    Math.round(fr);
+
+  $("outS").textContent =
+    (fr / fps).toFixed(3) + " 秒";
+
+  $("outTC").textContent =
+    tc(fr,fps);
+
+};
+
+$("clearBtn").onclick = () => {
+
+  ["frames","seconds","tc"]
+    .forEach(i => {
+      $(i).value = "";
+    });
+
+  ["outF","outS","outTC"]
+    .forEach(i => {
+      $(i).textContent = "---";
+    });
+
+};
+
+recentView();
+favView();
+render(filtered());
+
+</script>
+
+</body>
+</html>
